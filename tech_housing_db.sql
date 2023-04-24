@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost:3307
--- Tiempo de generación: 01-04-2023 a las 23:16:20
+-- Tiempo de generación: 24-04-2023 a las 00:54:08
 -- Versión del servidor: 10.4.22-MariaDB
 -- Versión de PHP: 7.4.27
 
@@ -74,7 +74,8 @@ CREATE TABLE `empleados` (
   `apellido` varchar(255) NOT NULL COMMENT 'Apellido del empleado',
   `correo_electronico` varchar(255) NOT NULL COMMENT 'Correo electrónico del empleado',
   `id_departamento` int(11) NOT NULL COMMENT 'Identificador único del departamento al que pertenece el empleado',
-  `id_cargo` int(11) NOT NULL COMMENT 'Identificador único del cargo que ocupa el empleado'
+  `id_cargo` int(11) NOT NULL COMMENT 'Identificador único del cargo que ocupa el empleado',
+  `id_role` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -105,6 +106,36 @@ CREATE TABLE `misiones` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `modulos`
+--
+
+CREATE TABLE `modulos` (
+  `id_modulo` int(11) NOT NULL,
+  `nombre_modulo` varchar(255) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  `date_modify` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `permisos`
+--
+
+CREATE TABLE `permisos` (
+  `id_permiso` int(11) NOT NULL,
+  `id_modulo` int(11) NOT NULL,
+  `id_role` int(11) NOT NULL,
+  `create` int(11) NOT NULL DEFAULT 0,
+  `read` int(11) NOT NULL DEFAULT 0,
+  `update` int(11) NOT NULL DEFAULT 0,
+  `deleted` int(11) NOT NULL DEFAULT 0,
+  `status` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `recibos_capacitaciones`
 --
 
@@ -113,6 +144,37 @@ CREATE TABLE `recibos_capacitaciones` (
   `tipo_recibo` varchar(255) NOT NULL COMMENT 'Tipo de recibo, por ejemplo, "factura" o "recibo de caja"',
   `imagen_recibo` mediumblob NOT NULL COMMENT 'Imagen del recibo escaneado o fotografiado',
   `id_capacitacion` int(11) NOT NULL COMMENT 'Identificador único de la capacitación a la que se refiere el recibo'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `roles`
+--
+
+CREATE TABLE `roles` (
+  `id_role` int(11) NOT NULL,
+  `rol_role` varchar(50) COLLATE utf8_spanish_ci NOT NULL,
+  `descripcion_role` text COLLATE utf8_spanish_ci NOT NULL,
+  `created_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `modify_date` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci COMMENT='Tabla de administracion de permisos';
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id_usuario` int(11) NOT NULL,
+  `nombre_usuario` varchar(255) NOT NULL,
+  `apellido_usuario` varchar(255) NOT NULL,
+  `correo_usuario` varchar(255) NOT NULL,
+  `contraseña_usuario` varchar(255) NOT NULL,
+  `telefono_usuario` varchar(14) NOT NULL,
+  `status` int(11) NOT NULL,
+  `id_role` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -144,7 +206,8 @@ ALTER TABLE `departamentos`
 ALTER TABLE `empleados`
   ADD PRIMARY KEY (`id_empleado`),
   ADD KEY `id_departamento` (`id_departamento`),
-  ADD KEY `id_cargo` (`id_cargo`);
+  ADD KEY `id_cargo` (`id_cargo`),
+  ADD KEY `id_role_fk2` (`id_role`);
 
 --
 -- Indices de la tabla `empleado_mision`
@@ -160,11 +223,38 @@ ALTER TABLE `misiones`
   ADD PRIMARY KEY (`id_mision`);
 
 --
+-- Indices de la tabla `modulos`
+--
+ALTER TABLE `modulos`
+  ADD PRIMARY KEY (`id_modulo`);
+
+--
+-- Indices de la tabla `permisos`
+--
+ALTER TABLE `permisos`
+  ADD PRIMARY KEY (`id_permiso`),
+  ADD KEY `id_role_fk1` (`id_role`),
+  ADD KEY `Id_modulo_fk1` (`id_modulo`);
+
+--
 -- Indices de la tabla `recibos_capacitaciones`
 --
 ALTER TABLE `recibos_capacitaciones`
   ADD PRIMARY KEY (`id_recibo`),
   ADD KEY `id_capacitacion` (`id_capacitacion`);
+
+--
+-- Indices de la tabla `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id_role`);
+
+--
+-- Indices de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id_usuario`),
+  ADD KEY `id_role_fk` (`id_role`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -201,10 +291,34 @@ ALTER TABLE `misiones`
   MODIFY `id_mision` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único de la misión';
 
 --
+-- AUTO_INCREMENT de la tabla `modulos`
+--
+ALTER TABLE `modulos`
+  MODIFY `id_modulo` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `permisos`
+--
+ALTER TABLE `permisos`
+  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `recibos_capacitaciones`
 --
 ALTER TABLE `recibos_capacitaciones`
   MODIFY `id_recibo` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Identificador único del recibo';
+
+--
+-- AUTO_INCREMENT de la tabla `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id_role` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Restricciones para tablas volcadas
@@ -221,7 +335,8 @@ ALTER TABLE `capacitaciones`
 --
 ALTER TABLE `empleados`
   ADD CONSTRAINT `empleados_ibfk_1` FOREIGN KEY (`id_departamento`) REFERENCES `departamentos` (`id_departamento`),
-  ADD CONSTRAINT `empleados_ibfk_2` FOREIGN KEY (`id_cargo`) REFERENCES `cargos` (`id_cargo`);
+  ADD CONSTRAINT `empleados_ibfk_2` FOREIGN KEY (`id_cargo`) REFERENCES `cargos` (`id_cargo`),
+  ADD CONSTRAINT `id_role_fk2` FOREIGN KEY (`id_role`) REFERENCES `roles` (`id_role`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `empleado_mision`
@@ -231,10 +346,23 @@ ALTER TABLE `empleado_mision`
   ADD CONSTRAINT `empleado_mision_ibfk_2` FOREIGN KEY (`id_mision`) REFERENCES `misiones` (`id_mision`);
 
 --
+-- Filtros para la tabla `permisos`
+--
+ALTER TABLE `permisos`
+  ADD CONSTRAINT `Id_modulo_fk1` FOREIGN KEY (`id_modulo`) REFERENCES `modulos` (`id_modulo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `id_role_fk1` FOREIGN KEY (`id_role`) REFERENCES `roles` (`id_role`);
+
+--
 -- Filtros para la tabla `recibos_capacitaciones`
 --
 ALTER TABLE `recibos_capacitaciones`
   ADD CONSTRAINT `recibos_capacitaciones_ibfk_1` FOREIGN KEY (`id_capacitacion`) REFERENCES `capacitaciones` (`id_capacitacion`);
+
+--
+-- Filtros para la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD CONSTRAINT `id_role_fk` FOREIGN KEY (`id_role`) REFERENCES `roles` (`id_role`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
